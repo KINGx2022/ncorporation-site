@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Quantum OS — функции и устройства</title>
+  <style>
+    /* === ОСНОВНЫЕ СТИЛИ (те же, что и на главной) === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-dark: #000000;
+      --glow-cyan: #00ffff;
+      --glow-blue: #1e90ff;
+      --accent-gradient: linear-gradient(135deg, #00ffff, #1e90ff, #4169e1);
+      --card-bg: rgba(10, 20, 30, 0.7);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(220, 240, 255, 0.9);
+      --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --container-max: 1000px;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 30% 10%, #0a1a2a, #000000 80%);
+      font-family: var(--font-stack);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 16px;
+      color: var(--text-primary);
+    }
+
+    .os-features-container {
+      width: 100%;
+      max-width: var(--container-max);
+      margin: 0 auto;
+      background: rgba(0, 5, 10, 0.4);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      border-radius: 48px;
+      padding: clamp(24px, 5vw, 48px);
+      box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0, 255, 255, 0.1) inset, 0 0 50px rgba(30, 144, 255, 0.2);
+      animation: blockAppear 1.2s ease-out forwards;
+    }
+
+    @keyframes blockAppear {
+      0% { opacity: 0; transform: scale(0.98); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes fadeSlideUp {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .os-features-container > * {
+      opacity: 0;
+      animation: fadeSlideUp 0.6s ease-out forwards;
+    }
+
+    /* стили для кнопки "На главную" - такие же как в каталоге */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #aaddff;
+      text-decoration: none;
+      font-size: 18px;
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0,255,255,0.3);
+      padding: 8px 20px;
+      border-radius: 40px;
+      background: rgba(0,10,20,0.5);
+    }
+
+    .back-link:hover {
+      color: white;
+      border-color: cyan;
+      box-shadow: 0 0 15px cyan;
+      transform: translateX(-5px);
+    }
+
+    .page-title {
+      font-size: clamp(32px, 7vw, 52px);
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 16px;
+      text-shadow: 0 0 10px cyan, 0 0 20px blue;
+      text-align: center;
+      animation-delay: 0.1s;
+    }
+
+    .page-subtitle {
+      font-size: clamp(16px, 3.5vw, 22px);
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 40px auto;
+      border-left: 3px solid #00ffff;
+      border-right: 3px solid #00ffff;
+      padding: 10px 20px;
+      text-shadow: 0 0 8px rgba(0,255,255,0.3);
+      animation-delay: 0.15s;
+    }
+
+    /* ===== СПИСОК ФУНКЦИЙ ===== */
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 50px;
+      animation-delay: 0.2s;
+    }
+
+    .feature-item {
+      background: rgba(0, 20, 40, 0.5);
+      border: 1px solid rgba(0, 255, 255, 0.2);
+      border-radius: 28px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .feature-header {
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(5, 15, 25, 0.6);
+      backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
+    }
+
+    .feature-header:hover {
+      background: rgba(0, 30, 50, 0.8);
+      border-color: cyan;
+      box-shadow: 0 0 15px rgba(0,255,255,0.2);
+    }
+
+    .feature-emoji {
+      font-size: 28px;
+      min-width: 48px;
+      text-align: center;
+      filter: drop-shadow(0 0 8px cyan);
+    }
+
+    .feature-name {
+      flex: 1;
+      font-size: clamp(18px, 4vw, 24px);
+      font-weight: 600;
+      color: #e0f0ff;
+      text-shadow: 0 0 5px rgba(0,255,255,0.3);
+    }
+
+    .feature-arrow {
+      font-size: 24px;
+      color: cyan;
+      transition: transform 0.4s ease;
+      text-shadow: 0 0 10px cyan;
+    }
+
+    /* контент (скрыт по умолчанию) */
+    .feature-content {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease-out, opacity 0.4s ease, padding 0.3s ease;
+      background: rgba(0, 10, 20, 0.7);
+      border-top: 1px solid transparent;
+    }
+
+    .feature-item.active .feature-content {
+      max-height: 600px; /* достаточно для контента */
+      opacity: 1;
+      border-top-color: rgba(0, 255, 255, 0.3);
+      padding: 24px;
+    }
+
+    .feature-item.active .feature-arrow {
+      transform: rotate(90deg);
+    }
+
+    /* блок с фото и описанием */
+    .feature-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .feature-detail img {
+      width: 100%;
+      max-height: 250px;
+      object-fit: cover;
+      border-radius: 24px;
+      border: 2px solid rgba(0, 255, 255, 0.3);
+      box-shadow: 0 0 25px rgba(0,255,255,0.2);
+      background: #0a1a2a;
+    }
+
+    .feature-detail p {
+      font-size: clamp(16px, 3vw, 18px);
+      line-height: 1.6;
+      color: var(--text-secondary);
+      background: rgba(0, 30, 50, 0.4);
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    /* кнопка "Связаться с менеджером" */
+    .contact-manager-btn {
+      background: linear-gradient(145deg, #00ccff, #1e4eff);
+      border: none;
+      border-radius: 60px;
+      padding: 18px 32px;
+      font-size: clamp(20px, 5vw, 26px);
+      font-weight: 700;
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 15px 30px -8px #000, 0 0 30px rgba(0, 255, 255, 0.5);
+      transition: all 0.4s ease;
+      margin: 30px 0 30px 0;
+      border: 1px solid rgba(255,255,255,0.2);
+      width: 100%;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      animation-delay: 0.3s;
+    }
+
+    .contact-manager-btn:hover {
+      transform: scale(1.03) translateY(-4px);
+      box-shadow: 0 20px 40px -10px #000, 0 0 45px cyan, 0 0 20px #1e90ff inset;
+      background: linear-gradient(145deg, #1ee9ff, #2f6aff);
+    }
+
+    .contact-manager-btn:active {
+      transform: scale(0.98);
+    }
+
+    .contact-manager-btn::before {
+      content: "📧";
+      font-size: 28px;
+      filter: drop-shadow(0 0 8px white);
+    }
+
+    /* сворачиваемый блок "Посмотреть поддерживаемые устройства" */
+    .devices-section {
+      margin: 40px 0 20px;
+      animation-delay: 0.35s;
+    }
+
+    .devices-toggle {
+      background: rgba(0, 20, 40, 0.6);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 60px;
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .devices-toggle:hover {
+      background: rgba(0, 40, 60, 0.8);
+      border-color: cyan;
+      box-shadow: 0 0 20px cyan;
+    }
+
+    .devices-toggle span {
+      font-size: clamp(18px, 4vw, 24px);
+      font-weight: 600;
+      color: #e0f0ff;
+    }
+
+    .devices-toggle .arrow {
+      font-size: 28px;
+      color: cyan;
+      transition: transform 0.4s ease;
+    }
+
+    .devices-toggle.active .arrow {
+      transform: rotate(180deg);
+    }
+
+    /* таблица устройств (скрыта) */
+    .devices-table-wrapper {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.7s ease-out, opacity 0.5s ease, margin 0.3s ease;
+      background: rgba(0, 10, 20, 0.5);
+      border-radius: 32px;
+      margin-top: 0;
+    }
+
+    .devices-table-wrapper.show {
+      max-height: 2000px; /* для 25 строк */
+      opacity: 1;
+      margin-top: 20px;
+    }
+
+    .devices-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid rgba(0, 255, 255, 0.2);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .devices-table td {
+      padding: 12px 10px;
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      color: #b0d0f0;
+      font-size: clamp(14px, 2.5vw, 16px);
+      text-align: left;
+      background: rgba(0, 20, 30, 0.4);
+    }
+
+    .devices-table tr:hover td {
+      background: rgba(0, 40, 60, 0.6);
+      color: white;
+      text-shadow: 0 0 5px cyan;
+    }
+
+    /* адаптация */
+    @media (max-width: 480px) {
+      .feature-header {
+        padding: 14px 18px;
+      }
+      
+      .feature-emoji {
+        font-size: 24px;
+        min-width: 40px;
+      }
+      
+      .devices-table td {
+        padding: 8px 6px;
+        font-size: 13px;
+      }
+      
+      .back-link {
+        font-size: 16px;
+        padding: 6px 16px;
+      }
+    }
+
+    /* подсказки для редактора */
+    .editor-hint {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="os-features-container">
+    <!-- ИСПРАВЛЕННАЯ ссылка на главную Quantum (стиль как в каталоге) -->
+    <a href="index.html" class="back-link">← На главную Quantum</a>
+<div class="os-features-container">
+    <!-- заголовок страницы -->
+    <h1 class="page-title">⚙️ Quantum OS — функции и устройства</h1>
+    <div class="page-subtitle">12 ключевых функций для вашей безопасности и свободы</div>
+    
+    <!-- СПИСОК ФУНКЦИЙ (12 штук) -->
+    <div class="features-list" id="featuresList">
+      <!-- Функция 1 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">🔒</span>
+          <span class="feature-name">Защищённые пространства</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="https://imgur.com/b0hmwB5.png" alt="3 Защищённые пространства" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=PROTECTED+SPACES'">
+            <p>🔒 Защищённые пространства:<br>
+Пользовательское – полностью персонализированное пространство для ваших данных и приложений.<br>
+Скрытое – безопасное место, которое не видно обычным пользователям, для приватных файлов и приложений.<br>
+Отвлекающее – создаёт маскировку активности и интерфейса для максимальной защиты, выглядит как обычный рабочий стол, но все данные скрыты.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 2 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">🌐</span>
+          <span class="feature-name">Встроенный VPN</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_2" alt="VPN" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=VPN'">
+            <p>🌐 Встроенный VPN Quantum<br>
+VPN автоматически активируется при переходе во Второе или Третье пространство.<br>
+Соединение устанавливается мгновенно без необходимости ручной настройки.<br>
+Весь интернет-трафик шифруется для защиты данных при работе в сети.<br>
+Система обеспечивает скрытие реального IP-адреса и замену его на защищённый виртуальный адрес.<br>
+Работа происходит в фоновом режиме без уведомлений и без влияния на производительность устройства.<br>
+Технология интегрирована на уровне системы, что гарантирует стабильность и постоянную защиту при использовании защищённых пространств.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 3 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">🔧</span>
+          <span class="feature-name">Управление IMEI/SN</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="https://imgur.com/sTYuHyi.png" alt="IMEI" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=IMEI+CONTROL'">
+            <p>Автоматическая смена IMEI каждый час (при настройке) или самостоятельная смена через спец-меню.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 4 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">🗑</span>
+          <span class="feature-name">Спец-PIN стирания</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="https://imgur.com/Tix8hHu.png" alt="Secret PIN" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=SECRET+PIN'">
+            <p>🗑 Duress-PIN (Защитный PIN)<br>
+Duress-PIN — это дополнительный защитный код, который можно настроить отдельно для Второго пространства или для всего устройства.<br>
+При вводе данного PIN-кода система автоматически активирует заранее выбранный сценарий безопасности.<br>
+Пользователь может выбрать область действия: только защищённое пространство или весь телефон полностью.<br>
+Функция предназначена для экстренных ситуаций и работает незаметно для окружающих.<br>
+Настройка производится в разделе безопасности Quantum OS с возможностью индивидуальной конфигурации для каждого пространства.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 5 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">📱</span>
+          <span class="feature-name">Новый lock screen</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_5" alt="Lock screen" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=LOCK+SCREEN'">
+            <p>🔐 Кастомизируемый экран блокировки Quantum<br>
+Полностью настраиваемый lock screen с гибкой системой персонализации.<br>
+Пользователь может изменять стиль часов, шрифты, цвета, вид уведомлений и элементы управления.<br>
+Поддерживаются динамические темы, анимации и индивидуальные профили оформления.<br>
+Экран блокировки интегрирован на уровне системы и обеспечивает усиленную защиту доступа к устройству.<br>
+Используются современные методы аутентификации и защита от несанкционированного обхода.<br>
+Lock screen остаётся активным до успешного подтверждения личности владельца.<br>
+Максимальная безопасность. Индивидуальный стиль. Полный контроль.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 6 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">🎛️</span>
+          <span class="feature-name">Новая клавиатура</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_6" alt="Keyboard" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=KEYBOARD'">
+            <p>⌨ Новая кастомизируемая клавиатура Quantum<br>
+Полностью переработанная системная клавиатура с поддержкой RGB-подсветки и гибкой персонализации интерфейса.<br>
+Пользователь может настраивать цвета, эффекты свечения, прозрачность, форму клавиш и стиль анимаций.<br>
+Доступны различные темы оформления — от минималистичных до динамических градиентов.<br>
+Клавиатура работает локально и не передаёт вводимые данные на внешние серверы.<br>
+Отсутствует трекинг, сбор статистики и скрытая телеметрия.<br>
+Быстрая, лёгкая и оптимизированная даже для старых устройств.<br>
+Чистый ввод. Полный контроль. Абсолютная свобода.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 7 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">📞</span>
+          <span class="feature-name">Новое приложение звонков</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_7" alt="Calls" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=CALLS+APP'">
+            <p>📞 Новое приложение звонков Quantum<br>
+Полностью переработанное системное приложение для вызовов с упором на приватность и контроль пользователя.<br>
+Работает без скрытого отслеживания и передачи данных третьим лицам.<br>
+Интерфейс гибко настраивается: расположение кнопок, темы, цветовые акценты и элементы управления во время звонка.<br>
+Поддерживается изменение тембра и стиля голоса в реальном времени во время разговора.<br>
+Доступна встроенная функция записи звонков с локальным сохранением на устройстве.<br>
+ИИ-модуль способен преобразовывать разговор в текст в режиме реального времени или после завершения вызова.<br>
+Также доступен автоматический перевод разговора с отображением субтитров на экране.<br>
+Приватность. Функциональность. Интеллект нового уровня.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 8 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">⚡</span>
+          <span class="feature-name">Оптимизация для старых устройств</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_8" alt="Optimization" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=OPTIMIZATION'">
+            <p>⚡ Оптимизация для старых устройств Quantum<br>
+Система специально адаптирована для работы на смартфонах и планшетах с устаревшими процессорами и ограниченной оперативной памятью.<br>
+Все анимации, интерфейс и фоновые процессы настроены для минимальной нагрузки на ресурсы.<br>
+Приложения работают быстрее, запуск системы происходит плавно и без задержек.<br>
+Регулярные обновления сохраняют совместимость с даже самыми старыми моделями.<br>
+Снижение энергопотребления и эффективное использование памяти обеспечивают длительное время работы без лагов.<br>
+Плавная, быстрая и стабильная работа на любом устройстве. Полная производительность даже на старых моделях.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 9 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">🔄</span>
+          <span class="feature-name">Регулярные обновления</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_9" alt="Updates" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=UPDATES'">
+            <p>🔄 Регулярные обновления Quantum OS<br>
+Система получает постоянные обновления для повышения безопасности, стабильности и функциональности.<br>
+Каждое обновление проходит тестирование и устанавливается автоматически или по желанию пользователя.<br>
+Обновления включают новые функции, улучшения интерфейса и оптимизацию производительности.<br>
+Совместимость со старыми устройствами сохраняется при каждом апдейте.<br>
+Постоянное совершенствование без потери контроля и без скрытых действий.<br>
+Всегда свежая система. Всегда безопасно. Всегда эффективно.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 10 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">🛡️</span>
+          <span class="feature-name">Приватность по умолчанию</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_10" alt="Privacy" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=PRIVACY'">
+            <p>🛡 Приватность по умолчанию Quantum OS<br>
+Все данные пользователя защищены с момента включения устройства.<br>
+Система блокирует передачу личной информации на внешние серверы без согласия.<br>
+Функции трекинга и сбора телеметрии полностью отключены по умолчанию.<br>
+Каждое приложение работает в изолированном пространстве с контролем доступа к данным.<br>
+Шифрование трафика и локальное хранение информации обеспечивают максимальную конфиденциальность.<br>
+Приватность встроена на уровне системы — никаких скрытых действий, только контроль пользователя.<br>
+Безопасность. Контроль. Полная свобода данных.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 11 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">📦</span>
+          <span class="feature-name">Возможность отключить GMS-Services</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_11" alt="Services" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=SERVICES'">
+            <p>⚙ Возможность отключить GMS (Google-сервисы) Quantum OS<br>
+Пользователь может отключить работу Google-сервисов полностью на всём устройстве или только в конкретном защищённом пространстве.<br>
+Это позволяет снизить слежку и полностью контролировать, какие приложения и службы имеют доступ к личным данным.<br>
+Функция работает без повреждения системы и сохраняет совместимость с остальными приложениями.<br>
+Настройка выполняется через безопасный системный интерфейс с прозрачной активацией и деактивацией.<br>
+Полный контроль над сервисами. Максимальная приватность. Без компромиссов.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Функция 12 -->
+      <div class="feature-item">
+        <div class="feature-header">
+          <span class="feature-emoji">🔓</span>
+          <span class="feature-name">Шифрование, свобода и контроль</span>
+          <span class="feature-arrow">➤</span>
+        </div>
+        <div class="feature-content">
+          <div class="feature-detail">
+            <img src="ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_12" alt="Freedom" onerror="this.src='https://via.placeholder.com/600x400/001122/00ffff?text=FREEDOM'">
+            <p>🔒 Свобода и контроль Quantum OS<br>
+Полное шифрование данных на устройстве, включая внутреннюю память, карту памяти и подключённые OTG-устройства.<br>
+Пользователь получает полный контроль над всеми системными и сторонними процессами.<br>
+Возможность ограничивать доступ приложений к файлам, папкам и внешним устройствам.<br>
+Контроль подключения к ПК и другим устройствам без согласия владельца полностью блокируется.<br>
+Каждый процесс и действие под наблюдением — только вы решаете, что разрешено.<br>
+Максимальная безопасность, приватность и свобода использования устройства.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- КНОПКА СВЯЗИ С МЕНЕДЖЕРОМ -->
+    <a href="https://t.me/NcorpGT" class="contact-manager-btn">Связаться с менеджером</a>
+    
+    <!-- СВОРАЧИВАЕМЫЙ БЛОК С ТАБЛИЦЕЙ УСТРОЙСТВ -->
+    <div class="devices-section">
+      <div class="devices-toggle" id="devicesToggle">
+        <span>📱 Посмотреть поддерживаемые устройства</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="devices-table-wrapper" id="devicesTable">
+        <table class="devices-table">
+          <!-- 25 строк, 3 колонки - заглушки (вы заполните) -->
+          <tr><td>Samsung Galaxy S7 edge</td><td>Samsung Galaxy A52 5G</td><td>Redmi K20</td></tr>
+          <tr><td>Samsung Galaxy S9/S9+</td><td>Samsung Galaxy A21s</td><td>Poco F1</td></tr>
+          <tr><td>Samsung Galaxy S10/10e/10+</td><td>Samsung Galaxy A20</td><td>Poco X3</td></tr>
+          <tr><td>Samsung Galaxy S20/20Fe/20+/20U</td><td>Samsung Galaxy A31</td><td>Poco X3 Pro</td></tr>
+          <tr><td>Samsung Galaxy S21/21U</td><td>Samsung Galaxy J6</td><td>OnePlus 9/9 Pro</td></tr>
+          <tr><td>Samsung Galaxy S22/22+/22U</td><td>Samsung Galaxy J7</td><td>OnePlus 8</td></tr>
+          <tr><td>Samsung Galaxy Note 5</td><td>Samsung Galaxy Wide 7</td><td>OnePlus 7T</td></tr>
+          <tr><td>Samsung Galaxy Note 7</td><td>Samsung Galaxy Wide 8</td><td>Google Pixel 6/6 Pro</td></tr>
+          <tr><td>Samsung Galaxy Note 8</td><td>Redmi Note 8/8 Pro</td><td>Google Pixel 5/5A</td></tr>
+          <tr><td>Samsung Galaxy Note 9</td><td>Redmi Note 9/9 Pro</td><td>Google Pixel 8/8A/8 Pro</td></tr>
+          <tr><td>Samsung Galaxy Note 10/10+</td><td>Redmi Note 9 Pro Max</td><td>Google Pixel 7/7A/7 Pro</td></tr>
+          <tr><td>Samsung Galaxy Note 20/20U</td><td>Redmi Note 10/10 Pro</td><td>Google Pixel 8</td></tr>
+          <tr><td>Samsung Galaxy A51</td><td>Redmi Note 11/11 Pro</td><td>Google Pixel 9</td></tr>
+          <tr><td>Samsung Galaxy A56</td><td>Redmi Note 12/12 Pro</td><td>LG V60 ThinQ</td></tr>
+          <tr><td>Samsung Galaxy A70</td><td>Redmi Note 12 Pro+</td><td>LG G8</td></tr>
+          <tr><td>Samsung Galaxy A54 5G</td><td>Redmi Note 13/13 Pro</td><td>LG G8X</td></tr>
+          <tr><td>Samsung Galaxy A53 5G</td><td>Redmi 9C</td><td>LG V30</td></tr>
+          <tr><td>Samsung Galaxy A34 5G</td><td>Redmi 9T</td><td>LG V35</td></tr>
+          <tr><td>Samsung Galaxy A73 5G</td><td>Redmi 9 NFC</td><td>Realme GT</td></tr>
+          <tr><td>Samsung Galaxy M32</td><td>Redmi 8</td><td>Realme X2</td></tr>
+          <tr><td>Samsung Galaxy M12</td><td>Redmi 10</td><td>Realme 7</td></tr>
+          <tr><td>Samsung Galaxy M54</td><td>Redmi 11</td><td>Realme 7 Pro</td></tr>
+          <tr><td>Samsung Galaxy Z Fold 5</td><td>Redmi 12</td><td>Nokia 7.2</td></tr>
+          <tr><td>Samsung Galaxy Z Flip 4</td><td>Redmi 8A (Поддержка остановлена)</td><td>Sony Xperia XZ2</td></tr>
+          <tr><td>Samsung Galaxy Z Flip 3</td><td>Redmi 9A (Поддержка остановлена)</td><td>Lenovo VIBE Z2 (Экспериментально)</td></tr>
+        </table>
+      </div>
+    </div>
+    
+    <!-- скрытая инструкция -->
+    <div style="opacity:0; height:0; overflow:hidden;">
+      ИНСТРУКЦИЯ: замените все "ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_1...12" на URL изображений, "ВВЕДИТЕ ТЕКСТ ОПИСАНИЯ" на текст, в таблице "ВВЕДИТЕ МОДЕЛЬ ..." на названия устройств. Email в кнопке можно изменить.
+    </div>
+  </div>
+
+  <!-- ИНТЕРАКТИВНОСТЬ (без JS) - используем хитрость с чекбоксами? но тут нужно JS для плавности. 
+       Без JS невозможно сделать раскрытие по клику с анимацией. Добавим минимальный JS для функциональности. 
+       Это не нарушает условие "без библиотек", просто небольшой скрипт. -->
+  <script>
+    // раскрытие функций
+    document.querySelectorAll('.feature-header').forEach(header => {
+      header.addEventListener('click', function() {
+        const item = this.closest('.feature-item');
+        item.classList.toggle('active');
+      });
+    });
+
+    // раскрытие таблицы устройств
+    const toggle = document.getElementById('devicesToggle');
+    const tableWrapper = document.getElementById('devicesTable');
+    
+    toggle.addEventListener('click', function() {
+      this.classList.toggle('active');
+      tableWrapper.classList.toggle('show');
+    });
+  </script>
+  
+  <!-- подсказки в комментариях -->
+  <!-- 
+    ⚠️ ПОЛЯ ДЛЯ ЗАМЕНЫ:
+    - Для каждой функции (12 раз): src="ВСТАВЬТЕ_ССЫЛКУ_НА_ФОТО_..." и текст описания
+    - В таблице: 75 ячеек "ВВЕДИТЕ МОДЕЛЬ ..." 
+    - Email в кнопке можно заменить на ссылку на форму
+  -->
+</body>
+</html>
