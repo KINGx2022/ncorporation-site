@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Quantum OS — каталог телефонов с ценой и наличием</title>
+  <style>
+    /* === ОБЩИЕ СТИЛИ (как на главной) === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-dark: #000000;
+      --glow-cyan: #00ffff;
+      --glow-blue: #1e90ff;
+      --accent-gradient: linear-gradient(135deg, #00ffff, #1e90ff, #4169e1);
+      --card-bg: rgba(10, 20, 30, 0.7);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(220, 240, 255, 0.9);
+      --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --container-max: 1200px;
+      --gap-standard: 20px;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 30% 10%, #0a1a2a, #000000 80%);
+      background-color: #000;
+      font-family: var(--font-stack);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 16px;
+      margin: 0;
+      line-height: 1.5;
+      color: var(--text-primary);
+    }
+
+    /* основной контейнер каталога */
+    .catalog-container {
+      width: 100%;
+      max-width: var(--container-max);
+      margin: 0 auto;
+      background: rgba(0, 5, 10, 0.4);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      border-radius: 48px;
+      padding: clamp(24px, 6vw, 50px) clamp(16px, 5vw, 40px);
+      box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0, 255, 255, 0.1) inset, 0 0 50px rgba(30, 144, 255, 0.2);
+      animation: blockAppear 1.2s ease-out forwards;
+    }
+
+    /* анимации */
+    @keyframes fadeSlideUp {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes blockAppear {
+      0% { opacity: 0; transform: scale(0.98); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .catalog-container > * {
+      opacity: 0;
+      animation: fadeSlideUp 0.7s ease-out forwards;
+    }
+
+    .page-title { animation-delay: 0.1s; }
+    .page-subtitle { animation-delay: 0.2s; }
+    .products-grid { animation-delay: 0.3s; }
+
+    /* типография */
+    .page-title {
+      font-size: clamp(32px, 7vw, 52px);
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 8px;
+      text-shadow: 0 0 10px cyan, 0 0 20px blue;
+      text-align: center;
+    }
+
+    .page-subtitle {
+      font-size: clamp(16px, 3.5vw, 22px);
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 40px auto;
+      border-left: 3px solid #00ffff;
+      border-right: 3px solid #00ffff;
+      padding: 10px 20px;
+      text-shadow: 0 0 8px rgba(0,255,255,0.3);
+    }
+
+    /* ===== СЕТКА ТОВАРОВ: 2 В РЯД ===== */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* ровно 2 колонки */
+      gap: 24px;
+      margin: 30px 0;
+    }
+
+    /* карточка товара (квадратная) */
+    .product-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 255, 255, 0.2);
+      border-radius: 28px;
+      padding: 20px 18px 22px 18px;
+      box-shadow: 0 15px 30px -10px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,255,255,0.2) inset, 0 0 25px rgba(30,144,255,0.3);
+      transition: all 0.4s ease;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      animation: fadeSlideUp 0.5s ease-out forwards;
+    }
+
+    /* задержки для карточек (чтобы появлялись постепенно) */
+    .product-card:nth-child(1) { animation-delay: 0.15s; }
+    .product-card:nth-child(2) { animation-delay: 0.2s; }
+    .product-card:nth-child(3) { animation-delay: 0.25s; }
+    .product-card:nth-child(4) { animation-delay: 0.3s; }
+    .product-card:nth-child(5) { animation-delay: 0.35s; }
+    .product-card:nth-child(6) { animation-delay: 0.4s; }
+    .product-card:nth-child(7) { animation-delay: 0.45s; }
+
+    .product-card:hover {
+      border-color: rgba(0, 255, 255, 0.6);
+      box-shadow: 0 20px 35px -12px black, 0 0 0 1px cyan inset, 0 0 35px #1e90ff;
+      transform: translateY(-6px);
+    }
+
+    /* фото товара */
+    .product-image {
+      width: 100%;
+      aspect-ratio: 1 / 1; /* делаем квадрат */
+      background: rgba(0, 20, 40, 0.6);
+      border-radius: 20px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      box-shadow: 0 0 15px rgba(0,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* чтобы фото заполняло квадрат */
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .product-card:hover .product-image img {
+      transform: scale(1.05);
+    }
+
+    /* заглушка, если фото не загрузится */
+    .product-image img[alt] {
+      background: #0a1a2a;
+    }
+
+    /* название модели */
+    .product-title {
+      font-size: clamp(18px, 4vw, 24px);
+      font-weight: 600;
+      background: linear-gradient(135deg, #ffffff, #aaddff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 8px;
+      text-shadow: 0 0 8px rgba(0,255,255,0.3);
+    }
+
+    /* состояние модели (новая, восстановленная и т.п.) */
+    .product-condition {
+      font-size: clamp(14px, 3vw, 18px);
+      color: #8bbfff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-left: 2px solid cyan;
+      padding-left: 12px;
+    }
+
+    .product-condition::before {
+      content: "⚡";
+      color: cyan;
+      font-size: 16px;
+      filter: drop-shadow(0 0 5px cyan);
+    }
+
+    /* КОНТЕЙНЕР ДЛЯ ЦЕНЫ И НАЛИЧИЯ (в ряд) */
+    .price-availability-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding: 0 2px;
+      font-size: clamp(15px, 3vw, 18px);
+      background: rgba(0, 255, 255, 0.05);
+      border-radius: 40px;
+      padding: 8px 14px;
+      border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    /* цена */
+    .product-price {
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff, #aaffdd);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 8px rgba(0,255,200,0.5);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .product-price::before {
+      content: "💰";
+      font-size: 16px;
+      filter: drop-shadow(0 0 4px gold);
+    }
+
+    /* наличие */
+    .product-availability {
+      color: #a0f0b0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      text-shadow: 0 0 8px rgba(0,255,100,0.3);
+    }
+
+    .product-availability::before {
+      content: "📦";
+      font-size: 16px;
+      filter: drop-shadow(0 0 4px cyan);
+    }
+
+    /* кнопка подробнее */
+    .product-btn {
+      background: linear-gradient(145deg, #00ccff, #1e4eff);
+      border: none;
+      border-radius: 40px;
+      padding: 12px 16px;
+      font-size: clamp(15px, 3vw, 18px);
+      font-weight: 600;
+      color: white;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px -6px #000, 0 0 15px rgba(0, 255, 255, 0.4);
+      transition: all 0.3s ease;
+      margin-top: auto;
+      border: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .product-btn:hover {
+      transform: scale(1.03) translateY(-2px);
+      box-shadow: 0 12px 25px -8px #000, 0 0 25px cyan, 0 0 10px #1e90ff inset;
+      background: linear-gradient(145deg, #1ee9ff, #2f6aff);
+    }
+
+    .product-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* ссылка "назад" на главную (для удобства) */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #aaddff;
+      text-decoration: none;
+      font-size: 18px;
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0,255,255,0.3);
+      padding: 8px 20px;
+      border-radius: 40px;
+      background: rgba(0,10,20,0.5);
+    }
+
+    .back-link:hover {
+      color: white;
+      border-color: cyan;
+      box-shadow: 0 0 15px cyan;
+      transform: translateX(-5px);
+    }
+
+    /* адаптация для мобильных */
+    @media (max-width: 600px) {
+      .products-grid {
+        gap: 16px;
+      }
+      
+      .product-card {
+        padding: 14px 12px 18px 12px;
+      }
+      
+      .product-btn {
+        padding: 10px 12px;
+      }
+      
+      .price-availability-row {
+        padding: 6px 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .products-grid {
+        grid-template-columns: repeat(2, 1fr); /* всё равно 2 колонки */
+        gap: 12px;
+      }
+      
+      .catalog-container {
+        padding: 20px 12px;
+      }
+      
+      .product-title {
+        font-size: 16px;
+      }
+      
+      .product-condition {
+        font-size: 13px;
+        padding-left: 8px;
+      }
+      
+      .product-btn {
+        font-size: 14px;
+        padding: 8px 8px;
+      }
+      
+      .price-availability-row {
+        font-size: 13px;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+    }
+
+    /* для совсем узких (до 360px) оставляем 2 колонки, но шрифт мельче */
+    @media (max-width: 360px) {
+      .product-title {
+        font-size: 14px;
+      }
+      
+      .product-condition {
+        font-size: 12px;
+      }
+      
+      .price-availability-row {
+        font-size: 12px;
+        padding: 4px 6px;
+      }
+      
+      .product-btn {
+        font-size: 12px;
+        padding: 6px 4px;
+      }
+    }
+
+    /* иконка стрелки */
+    .arrow-icon {
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="catalog-container">
+    <!-- ссылка на главную Quantum (ведет на NCorporation.html в корневой папке) -->
+    <a href="index.html" class="back-link">← На главную Quantum</a>
+    
+    <!-- заголовки -->
+    <h1 class="page-title">📱 Телефоны с Quantum OS</h1>
+    <div class="page-subtitle">Выбери устройство с предустановленной защищённой системой</div>
+    
+    <!-- СЕТКА ТОВАРОВ: 7 карточек, по 2 в ряд (3+4) -->
+    <div class="products-grid">
+      
+      <!-- ТОВАР #1 -->
+      <div class="product-card">
+        <div class="product-image">
+          <img src="https://imgur.com/Te7mO7g.png" alt="Quantum Phone X1" onerror="this.src='https://via.placeholder.com/400x400/001122/00ffff?text=QUANTUM+1'">
+        </div>
+        <div class="product-title">Galaxy S9 Plus</div>
+        <div class="product-condition">Состояние: Восстановленный</div>
+        
+        <div class="price-availability-row">
+          <span class="product-price">Цена: 185 USD </span>
+          <span class="product-availability">Наличие: 7 шт.</span>
+        </div>
+        
+        <!-- Кнопка ведет в папку Phone на product1.html -->
+        <a href="Phone/product1.html" class="product-btn">🔍 Подробнее</a>
+      </div>
+      
+      <!-- ТОВАР #2 -->
+      <div class="product-card">
+        <div class="product-image">
+          <img src="https://imgur.com/KbHk3Ij.png" alt="Quantum Phone X2" onerror="this.src='https://via.placeholder.com/400x400/001122/00ffff?text=QUANTUM+2'">
+        </div>
+        <div class="product-title">Galaxy S20 Plus</div>
+        <div class="product-condition">Состояние: Б/У (дефект)</div>
+        
+        <div class="price-availability-row">
+          <span class="product-price">Цена: 180 USD</span>
+          <span class="product-availability">Наличие: 1</span>
+        </div>
+        
+        <!-- Кнопка ведет в папку Phone на product2.html -->
+        <a href="Phone/product2.html" class="product-btn">🔍 Подробнее</a>
+      </div>
+      
+      <!-- ТОВАР #3 -->
+      <div class="product-card">
+        <div class="product-image">
+          <img src="https://imgur.com/FtBIMRk.png" alt="Quantum Phone Pro" onerror="this.src='https://via.placeholder.com/400x400/001122/00ffff?text=QUANTUM+3'">
+        </div>
+        <div class="product-title">Google Pixel 8</div>
+        <div class="product-condition">Состояние: Б/У (дефект)</div>
+        
+        <div class="price-availability-row">
+          <span class="product-price">Цена: 230 USD</span>
+          <span class="product-availability">Наличие: 1 шт.</span>
+        </div>
+        
+        <!-- Кнопка ведет в папку Phone на product3.html -->
+        <a href="Phone/product3.html" class="product-btn">🔍 Подробнее</a>
+      </div>
+      
+      <!-- ТОВАР #4 -->
+      <div class="product-card">
+        <div class="product-image">
+          <img src="https://imgur.com/PAR8mYo.png" alt="Quantum Lite" onerror="this.src='https://via.placeholder.com/400x400/001122/00ffff?text=QUANTUM+4'">
+        </div>
+        <div class="product-title">Redmi Note 8</div>
+        <div class="product-condition">Состояние: Новый</div>
+        
+        <div class="price-availability-row">
+          <span class="product-price">Цена: 110 USD</span>
+          <span class="product-availability">Наличие: 3 шт.</span>
+        </div>
+        
+        <!-- Кнопка ведет в папку Phone на product4.html -->
+        <a href="Phone/product4.html" class="product-btn">🔍 Подробнее</a>
+      </div>
+      
+      <!-- ТОВАР #5 -->
+      <div class="product-card">
+        <div class="product-image">
+          <img src="https://imgur.com/MdkH8e9.png" alt="Quantum Max" onerror="this.src='https://via.placeholder.com/400x400/001122/00ffff?text=QUANTUM+5'">
+        </div>
+        <div class="product-title">Galaxy S8 Plus</div>
+        <div class="product-condition">Состояние: Восстановленный</div>
+        
+        <div class="price-availability-row">
+          <span class="product-price">Цена: 175 USD</span>
+          <span class="product-availability">Наличие: 3 шт.</span>
+        </div>
+        
+        <!-- Кнопка ведет в папку Phone на product5.html -->
+        <a href="Phone/product5.html" class="product-btn">🔍 Подробнее</a>
+      </div>
+      
+      <!-- ТОВАР #6 -->
+      <div class="product-card">
+        <div class="product-image">
+          <img src="https://imgur.com/4uJxSg2.png" alt="Quantum Mini" onerror="this.src='https://via.placeholder.com/400x400/001122/00ffff?text=QUANTUM+6'">
+        </div>
+        <div class="product-title">Galaxy Note 9</div>
+        <div class="product-condition">Состояние: Б/У (идельное)</div>
+        
+        <div class="price-availability-row">
+          <span class="product-price">Цена: 140 USD</span>
+          <span class="product-availability">Наличие: 2 шт.</span>
+        </div>
+        
+        <!-- Кнопка ведет в папку Phone на product6.html -->
+        <a href="Phone/product6.html" class="product-btn">🔍 Подробнее</a>
+      </div>
+      
+      <!-- ТОВАР #7 -->
+      <div class="product-card">
+        <div class="product-image">
+          <img src="https://imgur.com/CD2o8UG.png" alt="Quantum Edge" onerror="this.src='https://via.placeholder.com/400x400/001122/00ffff?text=QUANTUM+7'">
+        </div>
+        <div class="product-title">Galaxy S20 Ultra</div>
+        <div class="product-condition">Состояние: Б/У (идеальное)</div>
+        
+        <div class="price-availability-row">
+          <span class="product-price">Цена: 340 USD</span>
+          <span class="product-availability">Нет в наличии!</span>
+        </div>
+        
+        <!-- Кнопка ведет в папку Phone на product7.html -->
+        <a href="Phone/product7.html" class="product-btn">🔍 Подробнее</a>
+      </div>
+      
+    </div>
+    
+    <!-- дополнительная кнопка назад внизу (ведет на NCorporation.html) -->
+    <div style="display: flex; justify-content: center; margin-top: 30px;">
+      <a href="index.html" class="back-link" style="border-color: cyan;">← Вернуться на главную</a>
+    </div>
+  </div>
+</body>
+</html>
